@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora Web con Historial - Tarea 2</title>
+    <style>
+        /* ESTILOS CSS3 */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #0f172a;
+            color: #f8fafc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 420px;
+            background-color: #1e293b;
+            padding: 25px;
+            border-radius: 18px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #38bdf8;
+        }
+
+        /* PANTALLA */
+        .display-container {
+            margin-bottom: 20px;
+        }
+
+        #display {
+            width: 100%;
+            height: 60px;
+            background-color: #0f172a;
+            border: 2px solid #334155;
+            border-radius: 10px;
+            color: #f8fafc;
+            font-size: 2rem;
+            text-align: right;
+            padding: 10px 15px;
+            outline: none;
+        }
+
+        /* CUADRÍCULA DE BOTONES */
+        .calculator-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        button {
+            height: 50px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            background-color: #334155;
+            color: #f8fafc;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        button:hover {
+            background-color: #475569;
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        .operator {
+            background-color: #2563eb;
+            color: #fff;
+        }
+
+        .operator:hover {
+            background-color: #1d4ed8;
+        }
+
+        .clear {
+            background-color: #dc2626;
+            color: #fff;
+        }
+
+        .clear:hover {
+            background-color: #b91c1c;
+        }
+
+        .equal {
+            background-color: #16a34a;
+            color: #fff;
+            grid-column: span 2;
+        }
+
+        .equal:hover {
+            background-color: #15803d;
+        }
+
+        /* SECCIÓN DEL HISTORIAL (LOCALSTORAGE) */
+        .history-section {
+            margin-top: 25px;
+            padding-top: 15px;
+            border-top: 1px solid #334155;
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .history-header h2 {
+            font-size: 1rem;
+            color: #cbd5e1;
+        }
+
+        .btn-clear-history {
+            background-color: #ef4444;
+            font-size: 0.8rem;
+            height: 30px;
+            padding: 0 10px;
+            border-radius: 6px;
+        }
+
+        .btn-clear-history:hover {
+            background-color: #dc2626;
+        }
+
+        #history-list {
+            list-style: none;
+            max-height: 150px;
+            overflow-y: auto;
+            background-color: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 10px;
+        }
+
+        #history-list li {
+            padding: 5px 0;
+            border-bottom: 1px solid #1e293b;
+            font-size: 0.9rem;
+            color: #94a3b8;
+            text-align: right;
+        }
+
+        #history-list li:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Calculadora Web</h1>
+
+        <!-- Pantalla -->
+        <div class="display-container">
+            <input type="text" id="display" readonly placeholder="0">
+        </div>
+
+        <!-- Teclado de Operaciones Básicas -->
+        <div class="calculator-grid">
+            <button class="clear" onclick="limpiarDisplay()">C</button>
+            <button class="operator" onclick="borrarUltimo()">⌫</button>
+            <button class="operator" onclick="agregarAlDisplay('/')">÷</button>
+            <button class="operator" onclick="agregarAlDisplay('*')">×</button>
+
+            <button onclick="agregarAlDisplay('7')">7</button>
+            <button onclick="agregarAlDisplay('8')">8</button>
+            <button onclick="agregarAlDisplay('9')">9</button>
+            <button class="operator" onclick="agregarAlDisplay('-')">-</button>
+
+            <button onclick="agregarAlDisplay('4')">4</button>
+            <button onclick="agregarAlDisplay('5')">5</button>
+            <button onclick="agregarAlDisplay('6')">6</button>
+            <button class="operator" onclick="agregarAlDisplay('+')">+</button>
+
+            <button onclick="agregarAlDisplay('1')">1</button>
+            <button onclick="agregarAlDisplay('2')">2</button>
+            <button onclick="agregarAlDisplay('3')">3</button>
+            <button onclick="agregarAlDisplay('.')">.</button>
+
+            <button onclick="agregarAlDisplay('0')">0</button>
+            <button onclick="agregarAlDisplay('00')">00</button>
+            <button class="equal" onclick="calcular()">=</button>
+        </div>
+
+        <!-- Sección de Historial guardado en localStorage -->
+        <div class="history-section">
+            <div class="history-header">
+                <h2>Historial de Cálculos</h2>
+                <button class="btn-clear-history" onclick="borrarHistorial()">Borrar Historial</button>
+            </div>
+            <ul id="history-list">
+                <li>Sin operaciones guardadas</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT ES5 -->
+    <script>
+        var display = document.getElementById('display');
+        var historyList = document.getElementById('history-list');
+
+        // Al cargar la página, recuperamos el historial guardado
+        window.onload = function() {
+            mostrarHistorial();
+        };
+
+        function agregarAlDisplay(valor) {
+            display.value += valor;
+        }
+
+        function limpiarDisplay() {
+            display.value = '';
+        }
+
+        function borrarUltimo() {
+            display.value = display.value.slice(0, -1);
+        }
+
+        function calcular() {
+            if (display.value === '') return;
+
+            try {
+                var expresion = display.value;
+                var resultado = eval(expresion);
+
+                // Formatear la operación para el historial
+                var operacion = expresion + ' = ' + resultado;
+                
+                // Mostrar en pantalla
+                display.value = resultado;
+
+                // Guardar operación en localStorage
+                guardarEnHistorial(operacion);
+            } catch (error) {
+                display.value = 'Error';
+                setTimeout(function() {
+                    limpiarDisplay();
+                }, 1500);
+            }
+        }
+
+        // FUNCIONALIDADES DE LOCALSTORAGE (ES5)
+        function obtenerHistorialGuardado() {
+            var historialJSON = localStorage.getItem('historialCalculadora');
+            if (historialJSON) {
+                return JSON.parse(historialJSON);
+            } else {
+                return [];
+            }
+        }
+
+        function guardarEnHistorial(operacion) {
+            var historial = obtenerHistorialGuardado();
+            historial.unshift(operacion); // Agrega la más reciente al principio
+            localStorage.setItem('historialCalculadora', JSON.stringify(historial));
+            mostrarHistorial();
+        }
+
+        function mostrarHistorial() {
+            var historial = obtenerHistorialGuardado();
+            historyList.innerHTML = '';
+
+            if (historial.length === 0) {
+                historyList.innerHTML = '<li>Sin operaciones guardadas</li>';
+                return;
+            }
+
+            for (var i = 0; i < historial.length; i++) {
+                var li = document.createElement('li');
+                li.innerText = historial[i];
+                historyList.appendChild(li);
+            }
+        }
+
+        function borrarHistorial() {
+            localStorage.removeItem('historialCalculadora');
+            mostrarHistorial();
+        }
+    </script>
+</body>
+</html>
